@@ -1,0 +1,13 @@
+Simple bootloader with an initial goal of fitting within 512 bytes.
+
+* Quick setup
+  We have no dependencies, so setting up is as simple as these 2 steps
+
+  : git clone git://github.com/tacos/beef.git
+  : make
+
+  To run it in the bochs emulator, just run this command and stick with
+  the default options. You might need to type 'c' in the emulator and hit
+  enter to continue the emulation.
+  : bochs
+
