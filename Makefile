@@ -6,7 +6,7 @@ all:
 
 clean:
 	rm -rf isofs boot boot.iso
-	rm *.o
+#	rm *.o
 
 
 
