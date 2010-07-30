@@ -115,13 +115,27 @@ gdt_desc:
          dw gdt_end - gdt - 1
          dd gdt
 
+;;; Print a char in AL to console.
+;;; AH will be set to 0
+print_char:
+        mov ah, 0x0
+        int 0x17
+        ret
+
 ;;; our "kernel"
 bits 32
 bit32_kernel:
         jmp $
 
 
+bits 16
 
-
+extra_data:
 times 510-($-$$) db 0x0
+
+
 dw 0xAA55
+
+
+
+
