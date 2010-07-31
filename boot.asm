@@ -8,8 +8,8 @@ org 7C00h
         ;;  -- Thanks Love4Boobies.
         xor bx, bx
         mov es, bx
-        ;; mov fs, bx
-        ;; mov gs, bx
+        ;; mov fs, bx    ; we don't actually use these
+        ;; mov gs, bx    ; don't actually use these
         mov ds, bx
         mov ss, bx
         ;; Setup a stack
@@ -20,14 +20,17 @@ org 7C00h
         jmp 0x0000: start
 
         ;; various bits of information for a temporary cache.
-        drive_number db 0xf
-        version_number db 0x00
+
         boot_loader_name dd  0xbadbeef5
+        version_number db 0x01
+
         mmap_count db 0xff
         mmap_start dw 0xffff
 
-start:
+        drive_number db 0xf
 
+start:
+;        xchg bx, bx
         mov [drive_number], dl  ; drive number for INT 13 calls.
 
 ;;; Opens the A20 gate, assuming BIOS is 2002 or newer.
@@ -60,18 +63,31 @@ detect_upper_memory:
         clc
 
 
+
 ;;; Read from drive
 ;;; ES BX AX CX DX are modified.
 load_kernel:
-        mov ax, 0x2000
+        ;; first reset the drive system
+        xor ax, ax              ; gets trashed shortly anyway
+        xor dx, dx
+        mov dl, [drive_number]
+        int 0x13
+
+        ;; now load our kernel.
+        mov al, 0x20
         mov es, ax
         xor bx, bx
         mov ax, 0x0209
         mov cx, 0x0003
-        xor dx, dx
+        ;; don't need to reset dh or dl, already done for us above.
         int 0x13
+;        cmp ah, 0x0
+;        jnz error
 
-
+        ;; Note that we are assuming this works first try, and that the
+	;; kernel is on a floppy disk.
+        ;; BUGBUG: Should be trying 3 times.
+        ;; Ideally we try 3 times, then error out or try other input methods.
 
 ;;; Load the gdt tables
 load_gdt:
@@ -115,12 +131,19 @@ gdt_desc:
          dw gdt_end - gdt - 1
          dd gdt
 
-;;; Print a char in AL to console.
-;;; AH will be set to 0
-print_char:
-        mov ah, 0x0
-        int 0x17
-        ret
+;; error:
+;;         push ax
+;;         mov al, "!"
+;;         call print_char
+;; ;        xchg bx, bx
+;;         ret
+
+;; ;;; Print a char in AL to console.
+;; ;;; AH will be set to 0
+;; print_char:
+;;         mov ah, 0x0
+;;         int 0x17
+;;         ret
 
 ;;; our "kernel"
 bits 32
